@@ -38,37 +38,6 @@ class SavedFiles {
 	public static var savedSoundMap:Map<String, Sound> = new Map<String, Sound>();
 	public static var usedAssets:Array<String> = [];
 
-	public static function clearAsset(key:String, do_gc:Bool = true, ?asset_type:AssetType):Void {
-
-		@:privateAccess
-		switch(asset_type){
-			default:{
-				if(!savedTempMap.exists(key)){return;}
-				savedTempMap.remove(key);
-			}
-			case IMAGE:{
-				if(!savedGraphicMap.exists(key)){return;}
-				openfl.Assets.cache.removeBitmapData(key);
-				FlxG.bitmap._cache.remove(key);
-				savedGraphicMap.remove(key);
-				//trace('deleted image: [${key}]');
-			}
-			case SOUND, MUSIC:{
-				if(!savedSoundMap.exists(key)){return;}
-				openfl.Assets.cache.removeSound(key);
-				savedSoundMap.remove(key);
-				//trace('deleted sound: [${key}]');
-			}
-			case FONT:{
-				if(!savedTempMap.exists(key)){return;}
-				openfl.Assets.cache.removeFont(key);
-				savedTempMap.remove(key);
-				//trace('deleted font: [${key}]');
-			}
-		}
-		
-		if(do_gc){System.gc();}
-	}
 	public static function clearUnusedAssets() {
 		for(key in savedGraphicMap.keys()){
 			if(usedAssets.contains(key)){continue;}
@@ -167,6 +136,8 @@ class SavedFiles {
 			case IMAGE:{savedGraphicMap.set(file, instance);}
 			case SOUND, MUSIC:{savedSoundMap.set(file, instance);}
 		}
+		
+		trace('Saved $file');
 	}
 	inline static public function unsaveFile(file:String, ?asset_type:AssetType):Void {
 		switch(asset_type){
@@ -281,19 +252,19 @@ class SavedFiles {
 	}
 	inline static public function getDataNote(data:Int, keys:Int, ?type:String):Note.Note_Graphic_Data {
 		if(type == null){type = PreSettings.getPreSetting("Note Skin", "Visual Settings");}
-		var strumJSON:StrumLine.StrumLine_Graphic_Data = getJson(Paths.strum_keys(keys, type));
-		var noteJSON:Note.Note_Graphic_Data = strumJSON.gameplay_notes.notes[(data % keys) % strumJSON.gameplay_notes.notes.length];
-		if(strumJSON == null || strumJSON.gameplay_notes == null || strumJSON.gameplay_notes.general_animations == null || strumJSON.gameplay_notes.general_animations.length <= 0){return noteJSON;}
-		for(anim in strumJSON.gameplay_notes.general_animations){noteJSON.animations.push(anim);}
-		return noteJSON;
+		var j_strum:StrumLine.StrumLine_Graphic_Data = getJson(Paths.strum_keys(keys, type));
+		var j_note:Note.Note_Graphic_Data = j_strum.gameplay_notes.notes[(data % (keys)) % (j_strum.gameplay_notes.notes.length)];
+		if(j_strum.gameplay_notes.general_animations == null || j_strum.gameplay_notes.general_animations.length <= 0){return j_note;}
+		for(anim in j_strum.gameplay_notes.general_animations){j_note.animations.push(anim);}
+		return j_note;
 	}
 	inline static public function getDataStaticNote(data:Int, keys:Int, ?type:String):Note.Note_Graphic_Data {
 		if(type == null){type = PreSettings.getPreSetting("Note Skin", "Visual Settings");}
-		var strumJSON:StrumLine.StrumLine_Graphic_Data = getJson(Paths.strum_keys(keys, type));
-		var noteJSON:Note.Note_Graphic_Data = strumJSON.static_notes.notes[(data % keys) % strumJSON.static_notes.notes.length];
-		if(strumJSON == null || strumJSON.gameplay_notes == null || strumJSON.static_notes.general_animations == null || strumJSON.static_notes.general_animations.length <= 0){return noteJSON;}
-		for(anim in strumJSON.static_notes.general_animations){noteJSON.animations.push(anim);}
-		return noteJSON;
+		var j_strum:StrumLine.StrumLine_Graphic_Data = getJson(Paths.strum_keys(keys, type));
+		var j_note:Note.Note_Graphic_Data = j_strum.static_notes.notes[(data % (keys)) % (j_strum.static_notes.notes.length)];
+		if(j_strum == null || j_strum.gameplay_notes == null || j_strum.static_notes.general_animations == null || j_strum.static_notes.general_animations.length <= 0){return j_note;}
+		for(anim in j_strum.static_notes.general_animations){j_note.animations.push(anim);}
+		return j_note;
 	}
 	
 	public static function fromUncachedSparrow(Source:FlxGraphicAsset, Description:String):FlxAtlasFrames {

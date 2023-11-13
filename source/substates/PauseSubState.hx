@@ -1,17 +1,19 @@
 package substates;
 
-import states.MusicBeatState;
-import flixel.FlxG;
-import flixel.FlxSprite;
-import flixel.FlxSubState;
 import flixel.addons.transition.FlxTransitionableState;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.input.keyboard.FlxKey;
-import flixel.system.FlxSound;
-import flixel.text.FlxText;
-import flixel.tweens.FlxEase;
+import flixel.sound.FlxSound;
 import flixel.tweens.FlxTween;
+import states.MusicBeatState;
+import flixel.tweens.FlxEase;
 import flixel.util.FlxColor;
+import flixel.text.FlxText;
+import flixel.FlxSubState;
+import states.VoidState;
+import states.PlayState;
+import flixel.FlxSprite;
+import flixel.FlxG;
 
 import states.PlayState.SongListData;
 
@@ -85,7 +87,10 @@ class PauseSubState extends MusicBeatSubstate {
 				switch(daSelected){
 					case "Resume":{doClose();}
 					case "Options":{loadSubState("substates.OptionsSubState", []);}
-					case "Restart Song":{MusicBeatState.loadState("states.PlayState", [], [[{type:"SONG", instance:states.PlayState.SONG}], false]);}
+					case "Restart Song":{
+						VoidState.clearAssets = false;
+						SongListData.playSong(PlayState.isStoryMode);
+					}
 					case "Exit to menu":{
 						var cur_state = MusicBeatState.state;
 						if((cur_state is states.PlayState)){		

@@ -19,10 +19,10 @@ class MusicBeatSubstate extends FlxUISubState {
 	private var lastBeat:Float = 0;
 	private var lastStep:Float = 0;
 
-	private var curStep:Int = 0;
-	private var curBeat:Int = 0;
+	public var curStep:Int = 0;
+	public var curBeat:Int = 0;
 
-	private var curCamera:FlxCamera = new FlxCamera();
+	public var curCamera:FlxCamera = new FlxCamera();
 	
 	public var principal_controls(get, never):Controls;
 	inline function get_principal_controls():Controls{return PlayerSettings.getPlayer(0).controls;}
@@ -68,7 +68,7 @@ class MusicBeatSubstate extends FlxUISubState {
 		
 		FlxG.mouse.visible = false;
 
-		for(s in scripts){s.setVariable("getSubstate", function(){return this;});}
+		for(s in scripts){s.setVariable('getSubstate', function(){return this;});}
 		for(s in scripts){s.exFunction('create');}
 	}
 

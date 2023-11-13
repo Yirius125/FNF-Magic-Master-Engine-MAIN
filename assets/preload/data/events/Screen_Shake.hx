@@ -4,7 +4,6 @@ import("Std");
 import("Note");
 import("Paths");
 
-
 preset("defaultValues", 
     [
         {name:"Shake",type:"Float",value:0.03},

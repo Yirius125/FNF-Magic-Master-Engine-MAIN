@@ -7,7 +7,7 @@ import flixel.addons.ui.FlxUITabMenu;
 import flixel.input.keyboard.FlxKey;
 import flixel.addons.ui.FlxUI;
 import flixel.tweens.FlxTween;
-import flixel.system.FlxSound;
+import flixel.sound.FlxSound;
 import states.MusicBeatState;
 import flixel.tweens.FlxEase;
 import flixel.util.FlxColor;

@@ -12,11 +12,11 @@ import flixel.addons.ui.FlxUITabMenu;
 import states.PlayState.SongListData;
 import flixel.addons.ui.FlxUIButton;
 import flixel.addons.ui.FlxUIGroup;
-import flixel.system.FlxSoundGroup;
+import flixel.sound.FlxSoundGroup;
 import openfl.net.FileReference;
 import substates.PopUpSubState;
 import flixel.addons.ui.FlxUI;
-import flixel.system.FlxSound;
+import flixel.sound.FlxSound;
 import flixel.tweens.FlxTween;
 import flixel.tweens.FlxEase;
 import flixel.input.FlxInput;
@@ -1560,6 +1560,8 @@ class ChartEditorState extends MusicBeatState {
         
         MENU.scrollFactor.set();
         MENU.showTabId("5Song");
+
+        if(_song.characters.length != 3){sub_menu.kill();}
     }
 
     override function getEvent(id:String, sender:Dynamic, data:Dynamic, ?params:Array<Dynamic>){
@@ -1703,9 +1705,9 @@ class ChartEditorState extends MusicBeatState {
                         curEvent.eventData[clEventListEvents.getSelectedIndex()][1] = rString;
                     }, false);
                 }
-                case "CHAR_GF":{_song.characters[0][0] = input.text; updateStage();}
-                case "CHAR_OPP":{_song.characters[1][0] = input.text; updateStage();}
-                case "CHAR_BF":{_song.characters[2][0] = input.text; updateStage();}
+                case "CHAR_GF":{if(input == null || _song.characters.length < 1 || _song.characters[0].length < 1){return;} _song.characters[0][0] = input.text; updateStage();}
+                case "CHAR_OPP":{if(input == null || _song.characters.length < 2 || _song.characters[1].length < 1){return;} _song.characters[1][0] = input.text; updateStage();}
+                case "CHAR_BF":{if(input == null || _song.characters.length < 3 || _song.characters[2].length < 1){return;} _song.characters[2][0] = input.text; updateStage();}
             }
         }else if(id == FlxUIDropDownMenu.CLICK_EVENT && (sender is FlxUIDropDownMenu)){
             var drop:FlxUIDropDownMenu = cast sender;

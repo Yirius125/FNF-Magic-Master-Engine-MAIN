@@ -7,6 +7,13 @@ import openfl.Lib;
 
 using StringTools;
 
+enum Script_Calls {
+    Stop_And_Break;
+    Continue;
+    Break;
+    Stop;
+}
+
 class Script extends FlxBasic {
     public static function getScript(key:String):Script {
         if(MusicBeatState.state.tempScripts.exists(key)){return MusicBeatState.state.tempScripts.get(key);}
@@ -63,11 +70,11 @@ class Script extends FlxBasic {
         setVariable('load_global_ui', nFunc);
         setVariable('load_solo_ui', nFunc);
 
+        setVariable('preload_event', nFunc);
+        
         setVariable('startSong', function(toEndFun:Void->Void){});
         setVariable('endSong', function(toEndFun:Void->Void){});
         
-        setVariable('preload_event', nFunc);
-
         setVariable('update', function(elapsed:Float) {});
 
         setVariable('beatHit', function(curBeat:Int) {});
@@ -85,6 +92,12 @@ class Script extends FlxBasic {
         setVariable('getScript', function(key:String):Script{return getScript(key);});
         setVariable('getModData', function(){return ModSupport.modDataScripts.get(Mod);});
 
+        setVariable('Script_Calls', Script_Calls);
+        setVariable('Stop_And_Break', Stop_And_Break);
+        setVariable('Continue', Continue);
+        setVariable('Break', Break);
+        setVariable('Stop', Stop);
+        
         setVariable("import",
             function(imp:String, ?val:String){
                 var cl = Type.resolveClass(imp);

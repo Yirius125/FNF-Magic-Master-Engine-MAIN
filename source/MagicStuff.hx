@@ -20,7 +20,7 @@ import openfl.Lib;
 using SavedFiles;
 
 class MagicStuff {
-	public static final version:String = "1.1";
+	public static final version:String = "1.3";
 
     public static function reload_data():Void {
         ModListState.isFirst = false;
@@ -116,11 +116,10 @@ class MagicStuff {
     }
     public static function getShader(_shader:String):FlxCustomShader {
         if(shaders.exists(_shader)){
-			if(shaders.get(_shader) == null){
-                shaders.remove(_shader);
-            }else{
+			if(shaders.get(_shader) != null){
                 return shaders.get(_shader);
             }
+            shaders.remove(_shader);
         }
         var new_shader:FlxCustomShader = new FlxCustomShader({fragmentsrc: SavedFiles.getText(Paths.shader(_shader))});
         shaders.set(_shader, new_shader);

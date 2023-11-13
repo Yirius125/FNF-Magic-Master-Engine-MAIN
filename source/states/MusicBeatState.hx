@@ -173,21 +173,11 @@ class MusicBeatState extends FlxUIState {
 
 	public function stepHit():Void {
 		if(curStep % 4 == 0){beatHit();}
-
 		for(s in scripts){s.exFunction('stepHit', [curStep]);}
 	}
 
 	public function beatHit():Void {
-		//do literally nothing dumbass
-
 		for(s in scripts){s.exFunction('beatHit', [curBeat]);}
-	}
-
-	public function trace(toTrace:String){
-		var arrToTrace:Array<String> = toTrace.split("\n");
-		for(t in arrToTrace){
-			trace('[${Type.getClassName(Type.getClass(this))}]: $t');
-		}
 	}
 	
 	override public function onFocus():Void{
@@ -213,9 +203,7 @@ class MusicBeatState extends FlxUIState {
 		}
 		
 		if(to_create == null){return null;}
-
 		var new_state = Type.createInstance(to_create, args);
-		
 		return new_state;
 	}
 
@@ -245,14 +233,7 @@ class MusicBeatState extends FlxUIState {
 
 		if(to_create == null){return null;}
 		
-		var new_state = Type.createInstance(to_create, args);
-		if((new_state is FlxUIState)){
-			cast(new_state,FlxUIState).transIn = FlxTransitionableState.defaultTransIn;
-			cast(new_state,FlxUIState).transOut = FlxTransitionableState.defaultTransOut;
-		}
-		new_state.persistentUpdate = true;
-		new_state.persistentDraw = true;
-		
+		var new_state = Type.createInstance(to_create, args);		
 		return new_state;
 	}
 

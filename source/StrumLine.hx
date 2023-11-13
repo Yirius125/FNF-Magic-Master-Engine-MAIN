@@ -24,6 +24,7 @@ import sys.thread.Thread;
 import flixel.FlxSprite;
 import flixel.ui.FlxBar;
 import flixel.FlxObject;
+import states.PlayState;
 import flixel.FlxG;
 import haxe.Timer;
 import haxe.Json;
@@ -182,14 +183,24 @@ class StrumLine extends FlxTypedGroup<Dynamic> {
 	public var lblStats:FlxText;
 
     // STRUMLINE VARIABLES
-    public var player:Int = 0;
+    public var isPlayer(get, never):Bool;
+    public function get_isPlayer():Bool {
+        if(!(MusicBeatState.state is PlayState)){return false;}
+        var curState:PlayState = cast MusicBeatState.state;
+        for(p in PlayState.strum_players){
+            if(this != curState.strumsGroup.members[p.strum]){continue;}
+            return true;
+        }
+
+        return false;
+    }
 
     public var typeStrum:String = "BotPlay"; //BotPlay, Playing, Charting, 
 
     // NOTE EVENTS
     public dynamic function onHIT(_note:Note):Void {};
     public dynamic function onMISS(_note:Note):Void {}
-    public dynamic function onRANK(_note:Note,_score:Float,_rank:String, _pop_image:String):Void {
+    public dynamic function onRANK(_note:Note, _score:Float, _rank:String, _pop_image:String):Void {
         if(PreSettings.getPreSetting("Type Splash", "Visual Settings") == "OnSick" && _score >= 350){splashNote(_note);}
         var cur_character = LOCAL_VARIABLES.Player;
         if(cur_character == null){return;}
@@ -272,8 +283,9 @@ class StrumLine extends FlxTypedGroup<Dynamic> {
     public var splashIcon:NoteSplash;
     public var tween_icon:FlxTween;
     
-	//PreSettings Variables
+	//Other Variables
 	public var pre_TypeScroll:String = PreSettings.getPreSetting("Type Scroll", "Visual Settings");
+    public var destroyNotes:Bool = true;
     
     public function new(X:Float, Y:Float, ?_keys:Int, ?_size:Int, ?_controls:Controls, ?_image:String, ?_style:String, ?_type:String){
         this.controls = _controls;
@@ -530,7 +542,7 @@ class StrumLine extends FlxTypedGroup<Dynamic> {
 
         switch(typeStrum){
             default:{for(c in staticnotes.statics){c.autoStatic = false;}}
-            case 'BotPlay':{for(c in staticnotes.statics){c.autoStatic = true;}}
+            case 'BotPlay', 'Nothing':{for(c in staticnotes.statics){c.autoStatic = true;}}
         }
     }
 
@@ -542,7 +554,7 @@ class StrumLine extends FlxTypedGroup<Dynamic> {
 
     var pressed_keys:Array<FlxKey> = [];
     private function onKeyPress(event:KeyboardEvent):Void {
-        if(typeStrum == "BotPlay" || PreSettings.getPreSetting("Type Mode", "Cheating Settings") == "BotPlay"){return;}
+        if(typeStrum != "Playing" || PreSettings.getPreSetting("Type Mode", "Cheating Settings") == "BotPlay"){return;}
         if(controls.keyboardScheme != Solo){return;}
 
         var eventKey:FlxKey = event.keyCode;
@@ -563,7 +575,7 @@ class StrumLine extends FlxTypedGroup<Dynamic> {
     }
 
     private function onKeyRelease(event:KeyboardEvent):Void {
-        if(typeStrum == "BotPlay" || PreSettings.getPreSetting("Type Mode", "Cheating Settings") == "BotPlay"){return;}
+        if(typeStrum != "Playing" || PreSettings.getPreSetting("Type Mode", "Cheating Settings") == "BotPlay"){return;}
         if(controls.keyboardScheme != Solo){return;}
         
         var eventKey:FlxKey = event.keyCode; pressed_keys.remove(eventKey);
@@ -691,9 +703,14 @@ class StrumLine extends FlxTypedGroup<Dynamic> {
         if(!strumGenerated){return;}
 
         notes.forEachAlive(function(daNote:Note){
-            if(daNote.strumTime < strumConductor.songPosition + (Conductor.safeZoneOffset * 0.5)){daNote.noteStatus = "CanBeHit";}
-            if(strumConductor.songPosition > daNote.strumTime + (350 / getScrollSpeed()) && daNote.noteStatus != "Pressed"){missNOTE(daNote); return;}
+            if(daNote.strumTime <= strumConductor.songPosition && (daNote.typeHit == "Ghost" || daNote.typeHit == "Always")){hitNOTE(daNote); return;}
+            if(!daNote.customInput){
+                if(daNote.strumTime < strumConductor.songPosition + (Conductor.safeZoneOffset * 0.5)){daNote.noteStatus = "CanBeHit";}
+                if(strumConductor.songPosition > daNote.strumTime + (350 / getScrollSpeed()) && daNote.noteStatus != "Pressed"){missNOTE(daNote); return;}
+            }
             
+            if(daNote.customChart){return;}
+
             daNote.visible = false;
             var noteStrum:StrumNote = staticnotes.statics[daNote.noteData];
             if(noteStrum == null){return;}
@@ -724,15 +741,6 @@ class StrumLine extends FlxTypedGroup<Dynamic> {
                     daNote.alpha = noteStrum.alpha * 0.5;
                     daNote.angle = 0;
                 }
-            }
-
-            if(daNote.strumTime <= strumConductor.songPosition && 
-                (
-                    daNote.typeHit == "Ghost" ||
-                    daNote.typeHit == "Always"
-                )
-            ){
-                hitNOTE(daNote);
             }
         });
         
@@ -765,9 +773,11 @@ class StrumLine extends FlxTypedGroup<Dynamic> {
     private function keyShit():Void{
         if(typeStrum == "BotPlay" || PreSettings.getPreSetting("Type Mode", "Cheating Settings") == "BotPlay"){
             notes.forEachAlive(function(daNote:Note){
-                if(daNote.strumTime <= strumConductor.songPosition && !daNote.hitMiss){hitNOTE(daNote);}
+                if(daNote.strumTime <= strumConductor.songPosition && !daNote.hitMiss && daNote.noteStatus == "CanBeHit"){
+                    hitNOTE(daNote);
+                }
             });
-        }else{
+        }else if(typeStrum == "Nothing"){}else{
             notes.forEachAlive(function(daNote:Note){
                 if(daNote.noteStatus == "CanBeHit" &&
                     (
@@ -788,13 +798,7 @@ class StrumLine extends FlxTypedGroup<Dynamic> {
             staticnotes.playById(daNote.noteData, "confirm", true);
         }
 
-        for(event in daNote.otherData){
-            if(event[2] != "OnHit"){continue;}
-            var curScript:Script = Script.getScript(event[0]);
-            if(curScript == null){continue;}
-            curScript.setVariable("_note", daNote);
-            curScript.exFunction("execute", event[1]);
-        }
+        daNote.execute_events("OnHit");
         
         if(daNote.hitMiss){missNOTE(daNote); return;}
         
@@ -818,9 +822,11 @@ class StrumLine extends FlxTypedGroup<Dynamic> {
 
         if((daNote.noteStatus != "MultiTap" && daNote.noteHits <= 0) || (daNote.noteHits < 0 && daNote.noteStatus == "MultiTap")){
             daNote.kill();
-            notes.remove(daNote, true);
             holdNotes.remove(daNote);
-            daNote.destroy();
+            if(destroyNotes){
+                notes.remove(daNote, true);
+                daNote.destroy();
+            }
         }
     }
 
@@ -830,15 +836,18 @@ class StrumLine extends FlxTypedGroup<Dynamic> {
         if(daNote.typeNote == "Sustain"){daNote.missHealth *= 0.25;}
         if(daNote.noteHits > 0){daNote.missHealth *= daNote.noteHits + 1;}
         
-        for(event in daNote.otherData){
-            if(event[2] != "OnMiss"){continue;}
-            var curScript:Script = Script.getScript(event[0]);
-            if(curScript == null){continue;}
-            curScript.setVariable("_note", daNote); 
-            curScript.exFunction("execute", event[1]);
-        }
+        daNote.execute_events("OnMiss");
         
-        if(daNote.ignoreMiss && !daNote.hitMiss){return;}
+        if(daNote.ignoreMiss && !daNote.hitMiss){
+            daNote.kill();
+            holdNotes.remove(daNote);
+            if(destroyNotes){
+                notes.remove(daNote, true);
+                daNote.destroy();
+            }
+            
+            return;
+        }
 
         if(daNote.typeNote != "Sustain"){
             if(PreSettings.getPreSetting("Miss Sounds", "Game Settings")){FlxG.sound.play(Paths.styleSound('missnote${FlxG.random.int(1,3)}', states.PlayState.SONG.uiStyle).getSound(), 0.4);}
@@ -856,8 +865,10 @@ class StrumLine extends FlxTypedGroup<Dynamic> {
 
         daNote.kill();
         holdNotes.remove(daNote);
-        notes.remove(daNote, true);
-        daNote.destroy();
+        if(destroyNotes){
+            notes.remove(daNote, true);
+            daNote.destroy();
+        }
     }
 
     public function rankNote(daNote:Note){

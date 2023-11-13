@@ -5,7 +5,7 @@ import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.addons.text.FlxTypeText;
 import flixel.addons.ui.FlxUIGroup;
 import flixel.group.FlxSpriteGroup;
-import flixel.system.FlxSound;
+import flixel.sound.FlxSound;
 import flixel.tweens.FlxTween;
 import flixel.tweens.FlxEase;
 import flixel.util.FlxTimer;

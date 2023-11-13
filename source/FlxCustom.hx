@@ -16,7 +16,7 @@ import flixel.math.FlxRect;
 import flixel.text.FlxText;
 import flixel.math.FlxPoint;
 import openfl.display.Shader;
-import flixel.system.FlxSound;
+import flixel.sound.FlxSound;
 import flixel.util.FlxArrayUtil;
 import flixel.util.FlxStringUtil;
 import flixel.util.FlxDestroyUtil;
@@ -392,6 +392,7 @@ class FlxCustomShader extends FlxShader {
         #define iChannel0 bitmap
         
         uniform float iTime;
+        uniform vec2 iScroll;
         uniform vec4 iMouse;
         uniform float iFrame;
         uniform float iTimeDelta;
@@ -415,8 +416,9 @@ class FlxCustomShader extends FlxShader {
         
 		iTime.value = [0.0];
 		iTimeDelta.value = [0.0];
-		iFrame.value = [FlxG.game.focusLostFramerate];
+        iScroll.value = [0.0, 0.0];
 		iMouse.value = [0.0, 0.0, 0.0, 0.0];
+		iFrame.value = [FlxG.game.focusLostFramerate];
 
         FlxCustomShader.shaders.push(this);
     }
@@ -429,6 +431,8 @@ class FlxCustomShader extends FlxShader {
         iMouse.value[1] = FlxG.mouse.screenY;
         iMouse.value[2] = FlxG.mouse.pressed ? FlxG.mouse.screenX : 0.0;
         iMouse.value[2] = FlxG.mouse.pressed ? FlxG.mouse.screenY : 0.0;
+        
+        iScroll.value = [FlxG.camera.scroll.x, FlxG.camera.scroll.y];
     }
 
     public function set_value(field:String, value:Dynamic):Void {

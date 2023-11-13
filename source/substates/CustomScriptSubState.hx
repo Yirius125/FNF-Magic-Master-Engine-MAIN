@@ -8,6 +8,6 @@ class CustomScriptSubState extends MusicBeatSubstate {
     public function new(new_script:Script, onClose:Void->Void = null):Void {
         custom_script = new_script;
         super(onClose);
-        tempScripts.set(new_script.Name, new_script);
+        tempScripts.set(custom_script.Name, custom_script);
     }
 }

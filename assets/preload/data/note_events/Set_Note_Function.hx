@@ -15,6 +15,6 @@ preset("defaultValues",
 );
 
 function execute(funct:String, args:Array<Dynamic>){
-    if(_note == null || funct == "" || args.lenght <= 0){return;}
+    if(_note == null || funct == "" || args.length <= 0){return;}
     Reflect.callMethod(_note, Reflect.field(_note, funct), args);
 }

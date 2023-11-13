@@ -4,6 +4,7 @@ import flixel.FlxG;
 import flixel.FlxObject;
 import flixel.FlxSprite;
 import states.PlayState;
+import states.VoidState;
 import flixel.FlxCamera;
 import flixel.FlxSubState;
 import flixel.math.FlxPoint;
@@ -118,7 +119,10 @@ class GameOverSubstate extends MusicBeatSubstate {
 
         for(char in death_characters){char.playAnim('deathConfirm', true);}
 
-        new FlxTimer().start(0.7, function(tmr:FlxTimer){otherCamera.fade(FlxColor.BLACK, 2, false, function(){states.MusicBeatState.loadState("states.PlayState", [], [[{type:"SONG", instance:states.PlayState.SONG}], false]);});});
+        new FlxTimer().start(0.7, function(tmr:FlxTimer){otherCamera.fade(FlxColor.BLACK, 2, false, function(){
+			VoidState.clearAssets = false;
+			SongListData.playSong(PlayState.isStoryMode);
+        });});
     }
 
 }

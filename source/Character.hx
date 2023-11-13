@@ -261,7 +261,6 @@ class Character extends FlxSpriteGroup {
 		c.antialiasing = charFile.antialiasing;
 
 		var new_path:String = Paths.image('characters/${curCharacter}/${imageFile}');
-		if(last_path != null && last_path != new_path){SavedFiles.clearAsset(last_path);}
 		c.frames = new_path.getAtlas();
 		last_path = new_path;
 
@@ -341,7 +340,8 @@ class Character extends FlxSpriteGroup {
 			curAnim == AnimName &&
 			animationsArray.exists(AnimName) &&
 			curPAnim() != null &&
-			curPAnim().curFrame < animationsArray[AnimName].sustain_sing
+			curPAnim().curFrame < animationsArray[AnimName].sustain_sing &&
+			!Force
 		){return;}
 		if(charScript != null && charScript.exFunction('playAnim', [AnimName, Force])){return;}
 		if(c == null){return;}
@@ -377,7 +377,6 @@ class Character extends FlxSpriteGroup {
 	override public function destroy():Void {
 		super.destroy();
 
-		if(last_path != null){SavedFiles.clearAsset(last_path);}
 		if(charScript != null){
 			charScript.destroy();
 			charScript = null;

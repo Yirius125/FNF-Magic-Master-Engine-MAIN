@@ -35,6 +35,7 @@ class HealthIcon extends FlxSprite {
 		switch(curIcon){
 			default:{
 				var path = Paths.image('icons/icon-${curIcon}');
+				if(!Paths.exists(path)){path = Paths.image('icons/icon-${curIcon}-pixel');}
 				if(!Paths.exists(path)){path = Paths.image('icons/icon-face');}
 
 				if(path.getAtlas() != null){
@@ -53,6 +54,7 @@ class HealthIcon extends FlxSprite {
 				}
 				playAnim("default");
 				updateHitbox();
+				antialiasing = !path.contains("pixel");
 			}
 		}
 	}

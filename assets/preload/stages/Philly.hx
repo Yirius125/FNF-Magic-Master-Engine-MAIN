@@ -1,4 +1,4 @@
-import("flixel.system.FlxSound", "FlxSound");
+import("flixel.sound.FlxSound", "FlxSound");
 import("flixel.FlxSprite", "FlxSprite");
 import("PreSettings", "PreSettings");
 import("SavedFiles", "SavedFiles");

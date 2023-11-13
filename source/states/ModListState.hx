@@ -13,7 +13,7 @@ import flixel.util.FlxStringUtil;
 import flixel.util.FlxArrayUtil;
 import flixel.util.FlxGradient;
 import flixel.system.FlxAssets;
-import flixel.system.FlxSound;
+import flixel.sound.FlxSound;
 import flixel.tweens.FlxTween;
 import openfl.utils.AssetType;
 import flixel.group.FlxGroup;

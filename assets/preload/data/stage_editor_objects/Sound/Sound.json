@@ -1,6 +1,6 @@
 {
     "imports":{
-        "flixel.system.FlxSound": "FlxSound",
+        "flixel.sound.FlxSound": "FlxSound",
         "SavedFiles": "SavedFiles",
         "flixel.FlxG": "FlxG",
         "Paths": "Paths"

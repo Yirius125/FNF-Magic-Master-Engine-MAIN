@@ -1,9 +1,9 @@
 {
     "Events":[
-        ["Set_Note_Function", ["loadNote", ["HURT_NOTE_assets", null, null]], "OnCreate"],
-        ["Set_Note_Property", ["playColor", "0x000000"], "OnCreate"],
         ["Set_Note_Property", ["hitMiss", true], "OnCreate"],
+        ["Set_Note_Property", ["missHealth", 0.1], "OnCreate"],
         ["Set_Note_Property", ["ignoreMiss", true], "OnCreate"],
-        ["Set_Note_Property", ["missHealth", 0.1], "OnCreate"]
+        ["Set_Note_Property", ["disableColor", true], "OnCreate"],
+        ["Set_Note_Function", ["loadNote", ["HURT_NOTE_assets", null, null]], "OnCreate"]
     ]
 }

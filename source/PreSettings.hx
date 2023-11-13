@@ -43,6 +43,7 @@ class PreSettings {
             "Only Notes" => false
         ],
         "Other Settings" => [
+            "Visible Fps / Memory" => true,
             "Allow FlashingLights" => true,
             "Allow Violence" => true,
             "Allow Gore" => true,
@@ -106,6 +107,8 @@ class PreSettings {
 			FlxG.drawFramerate = PreSettings.getPreSetting("FrameRate", "Graphic Settings");
 			FlxG.updateFramerate = PreSettings.getPreSetting("FrameRate", "Graphic Settings");
 		}
+
+        Main.Info.visible = PreSettings.getPreSetting("Visible Fps / Memory", "Other Settings");
         
         trace("PreSettings Loaded");
     }
@@ -122,6 +125,8 @@ class PreSettings {
 			FlxG.updateFramerate = PreSettings.getPreSetting("FrameRate", "Graphic Settings");
 		}
 
+        Main.Info.visible = PreSettings.getPreSetting("Visible Fps / Memory", "Other Settings");
+
 		trace("PreSettings Saved Successfully!");
     }
 
@@ -132,12 +137,12 @@ class PreSettings {
         trace("Options Reset Successfully!");
     }
 
-    public static function getPreSetting(setting:String, category:String):Dynamic{
+    public static function getPreSetting(setting:String, category:String):Dynamic {
         var toReturn = CURRENT_SETTINGS.get(category).get(setting);
         if((toReturn is Array)){return toReturn[1][toReturn[0]];}
         return toReturn;
     }
-    public static function getArrayPreSetting(setting:String, category:String):Array<String>{
+    public static function getArrayPreSetting(setting:String, category:String):Array<String> {
         return CURRENT_SETTINGS.get(category).get(setting)[1];
     }
 

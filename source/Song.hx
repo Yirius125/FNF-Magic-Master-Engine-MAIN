@@ -341,7 +341,7 @@ class Song {
 		while(cur_ev < _song.events.length){
 			var ev = _song.events[cur_ev];
 			var ev_data:EventData = Note.getEventData(ev);
-			if(!ev_data.isExternal){continue;}
+			if(!ev_data.isExternal){cur_ev++; continue;}
 			_global_events.events.push(ev);
 			if(!ev_data.isBroken){_song.events.remove(ev); cur_ev--;}
 			cur_ev++;

@@ -9,7 +9,7 @@ import flixel.input.gamepad.FlxGamepad;
 import flixel.system.ui.FlxSoundTray;
 import flixel.graphics.FlxGraphic;
 import flixel.util.FlxGradient;
-import flixel.system.FlxSound;
+import flixel.sound.FlxSound;
 import flixel.tweens.FlxTween;
 import flixel.math.FlxRandom;
 import flixel.group.FlxGroup;

@@ -50,13 +50,16 @@ typedef Note_Animation_Data = {
     var loop:Bool;
 }
 
-class StrumNote extends FlxSprite{
+class StrumNote extends FlxSprite {
     public static var IMAGE_DEFAULT:String = "NOTE_assets";
     public static var STYLE_DEFAULT:String = "Default";
     public static var DRAW_SHADER:Bool = true;
 
     public static var TYPE_DEFAULT(get, never):String;
 	inline static function get_TYPE_DEFAULT():String {return PreSettings.getPreSetting("Note Skin", "Visual Settings");}
+
+    public static var global_suffix:String = "";
+    public static var global_prefix:String = "";
 
     public var splashImage:String = NoteSplash.IMAGE_DEFAULT;
     public var image:String = IMAGE_DEFAULT;
@@ -66,7 +69,12 @@ class StrumNote extends FlxSprite{
     public var noteData:Int = 0;
     public var noteKeys:Int = 4;
     
-    public var lockColor:Bool = false;
+    public var disableColor(default, set):Bool = false;
+    public function set_disableColor(value:Bool):Bool {
+        shader = value ? ShaderColorSwap.get_shader(note_path.getColorNote(), playColor) : null;        
+        return disableColor = value;
+    }
+
     public var playColor:FlxColor;
 
     public var singAnimation:String = null;
@@ -96,28 +104,32 @@ class StrumNote extends FlxSprite{
     }
 
     public function loadNote(?_image:String, ?_style:String, ?_type:String){
-        var sAnim:String = this.animation != null && this.animation.curAnim != null ? this.animation.curAnim.name : "static";
+        var sAnim:String = (this.animation != null && this.animation.curAnim != null) ? this.animation.curAnim.name : "static";
         if(_image != null){image = _image;} if(_style != null){style = _style;} if(_type != null){type = _type;}
 
         note_path = Paths.note(image, style, type);
+
         frames = note_path.getAtlas();
-        var getJSON:Note_Graphic_Data = SavedFiles.getDataStaticNote(noteData, noteKeys, type);
-        if((this is Note)){getJSON = SavedFiles.getDataNote(noteData, noteKeys, type);}
+        var n_json:Note_Graphic_Data = (this is Note) ? SavedFiles.getDataNote(noteData, noteKeys, type) : SavedFiles.getDataStaticNote(noteData, noteKeys, type);
         
-        if(!lockColor){playColor = FlxColor.fromString(getJSON.color != null ? getJSON.color : "0xffffff");}        
-        antialiasing = getJSON.antialiasing && !style.contains("pxl-");
-        singAnimation = getJSON.sing_animation;
+        playColor = disableColor ? 0xffffff : (n_json.color != null ? FlxColor.fromString(n_json.color) : 0xffffff);  
+        antialiasing = n_json.antialiasing && !style.contains("pxl-");
+        singAnimation = n_json.sing_animation;
 
-        if(frames == null || getJSON.animations == null || getJSON.animations.length <= 0){return;}
+        shader = null;
+        if(StrumNote.DRAW_SHADER && !disableColor){shader = ShaderColorSwap.get_shader(note_path.getColorNote(), playColor);}
 
-        for(anim in getJSON.animations){
+        if(frames == null || n_json.animations == null || n_json.animations.length <= 0){return;}
+
+        for(anim in n_json.animations){
             if(anim.indices != null && anim.indices.length > 0){animation.addByIndices(anim.anim, anim.symbol, anim.indices, "", anim.fps, anim.loop);}
             else{animation.addByPrefix(anim.anim, anim.symbol, anim.fps, anim.loop);}
         }
 
-        if(StrumNote.DRAW_SHADER){shader = ShaderColorSwap.get_shader(note_path.getColorNote(), playColor);}
-
         playAnim(sAnim);
+    }
+    public function addAnim(anim:String, symbol:String, fps:Int, loop:Bool):Void {
+        animation.addByPrefix(anim, symbol, fps, loop);
     }
 
     override function update(elapsed:Float){
@@ -127,11 +139,11 @@ class StrumNote extends FlxSprite{
 	}
 
     public function playAnim(anim:String, force:Bool = false){
-		animation.play(anim, force);
+		animation.play(global_prefix + anim + global_suffix, force);
         setGraphicSize(Std.int(note_size.x), Std.int(note_size.y));
 	}
 
-    override public function setGraphicSize(Width:Int = 0, Height:Int = 0):Void {
+    override public function setGraphicSize(Width:Float = 0, Height:Float = 0):Void {
         super.setGraphicSize(Width, Height);
         this.updateHitbox();
     }
@@ -286,6 +298,13 @@ class Note extends StrumNote {
 
         return toReturn;
     }
+
+    public static function getScript(key:String):Script {
+        var curScript:Script = Script.getScript(key);
+        if(curScript == null){MusicBeatState.state.pushTempScript(key);}
+        curScript = Script.getScript(key);
+        return curScript;
+    }
     
     public static var defaultHitHealth:Float = 0.023;
     public static var defaultMissHealth:Float = 0.0475;
@@ -309,8 +328,13 @@ class Note extends StrumNote {
     public var typeHit:String = "Press"; // [Press | Normal Hits] [Hold | Hold Hits] [Release | Release Hits] [Always | Just Hit] [Ghost | Just Hit Withowt Strum Anim] [None | Can't Hit]
     public var hitMiss:Bool = false;
     public var ignoreMiss:Bool = false;
+    
+    public var customChart:Bool = false;
+    public var customInput:Bool = false;
+    public var customAnim:Bool = false;
 
 	public var otherData:Array<Dynamic> = [];
+    public var typePreset:String = "Default";
 
     //Other Variables
     public var noteStatus:String = "Spawned"; //status: Spawned, CanBeHit, Pressed, Late, MultiTap
@@ -323,31 +347,40 @@ class Note extends StrumNote {
 	public var pre_TypeScroll:String = ((states.MusicBeatState.state is states.editors.ChartEditorState)) ? "UpScroll" : PreSettings.getPreSetting("Type Scroll", "Visual Settings");
     
 	public function new(data:NoteData, noteKeys:Int, ?_image:String, ?_style:String, ?_type:String){
-        this.strumTime = data.strumTime;
-        this.noteLength = data.sustainLength;
-        this.noteHits = data.multiHits;
         if(data.eventData != null){this.otherData = data.eventData;}
+        this.noteLength = data.sustainLength;
+        this.strumTime = data.strumTime;
+        this.noteHits = data.multiHits;
 
-        super(data.keyData, noteKeys, _image, _style, _type);
+        this.image = _image != null ? _image : this.image;
+        this.style = _style != null ? _style : this.style;
+        this.type = _type != null ? _type : this.type;
 
-        loadPresset(data.preset);
+        loadPreset(data.preset, true);
+        
+        execute_events("OnCreate");
+
+        super(data.keyData, noteKeys, image, style, type);
+        
+        execute_events("OnCreated");
 	}
 
-    public function loadPresset(preset:String, onCreate:Bool = true):Void {
+    public function loadPreset(preset:String, onCreate:Bool = false):Void {
         if(!onCreate && preset == "Default"){otherData = []; loadNote(StrumNote.IMAGE_DEFAULT); return;}
+        typePreset = preset;
 
         var json_path:String = Paths.getPath('${preset}.json', TEXT, 'notes');
         if(preset != "" && Paths.exists(json_path)){
             var eventList:Dynamic = json_path.getJson();
             otherData = eventList.Events;
         }
-        
+    }
+
+    public function execute_events(type:String){
         for(event in otherData){
-            if(event[2] != "OnCreate"){continue;}
+            if(event[2] != type){continue;}
             
-            var curScript:Script = Script.getScript(event[0]);
-            if(curScript == null){MusicBeatState.state.pushTempScript(event[0]);}
-            curScript = Script.getScript(event[0]);
+            var curScript:Script = Note.getScript(event[0]);
             if(curScript == null){continue;}
             curScript.setVariable("_note", this);
             curScript.exFunction("execute", event[1]);
@@ -357,6 +390,7 @@ class Note extends StrumNote {
     override function update(elapsed:Float){
 		super.update(elapsed);
 
+        if(customAnim){return;}
         switch(this.typeNote){
             case "Normal":{playAnim("static");}
             case "Sustain":{
@@ -369,7 +403,8 @@ class Note extends StrumNote {
 	}
 
     override public function playAnim(anim:String, force:Bool = false){
-		animation.play(anim, force);
+		animation.play(StrumNote.global_prefix + anim + StrumNote.global_suffix, force);
+
         switch(typeNote){
             default:{
                 setGraphicSize(Std.int(note_size.x), Std.int(note_size.y));
@@ -524,7 +559,7 @@ class NoteSplash extends FlxSprite {
     }
 
     public function playAnim(anim:String, ?force:Bool = false){
-        animation.play(anim, force);
+        animation.play(StrumNote.global_prefix + anim + StrumNote.global_suffix, force);
 	}
 }
 

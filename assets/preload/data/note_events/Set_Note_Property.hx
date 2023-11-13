@@ -13,7 +13,7 @@ preset("defaultValues",
     ]
 );
 
-function execute(property:String, value:String){
-    if(_note == null || property == "" ||value == ""){return;}
+function execute(property:String, value:Dynamic){
+    if(_note == null || property == "" || value == ""){return;}
     Reflect.setProperty(_note, property, value);
 }
